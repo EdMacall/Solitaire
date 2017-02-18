@@ -1,0 +1,545 @@
+{\rtf1\ansi\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil\fcharset0 Courier New;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Riched20 10.0.10586}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 Juegos: Solitaire v1.0\par
+Games: Solitaire v1.0\par
+\par
+Juan Mellado, 17 Febrero, 2006 - 19:17\par
+Juan Mellado, 17 February 2006 - 19:17\par
+\par
+Algunas notas acerca del dise\'f1o e implementaci\'f3n del cl\'e1sico juego de cartas del Solitario escrito en JavaScript.\par
+Some notes about the design and implementation of the classic card game Solitaire written in JavaScript.\par
+\par
+\par
+La operativa del juego es bastante conocida, y b\'e1sicamente consiste en sacar cartas de dos en dos de una baraja para agruparlas en cuatro mazos, uno por cada palo de la baraja, pudi\'e9ndose ayudar de unos mazos auxiliares en los que se pueden acumular y descubrir nuevas cartas.\par
+The operation of the game is well known, and basically consists of drawing cards two at a deck to group them into four decks, one for each suit in the deck, being able to help some auxiliary decks where can accumulate and discover new cards.\par
+\par
+\par
+La mayor dificultad, en cuanto a programaci\'f3n se refiere, ha sido la implementaci\'f3n del Drag and Drop para arrastrar una o varias cartas de golpe de un mont\'f3n a otro.\par
+The greatest difficulty in terms of programming is concerned, it has been the implementation of the Drag and Drop to drag one or more cards at once from one pile to another.\par
+\par
+ Aunque gracias a la gran cantidad de p\'e1ginas que he podido encontrar en Internet acerca de este tema no ha resultado excesivamente dif\'edcil hacer funcionar el efecto correctamente.\par
+Although thanks to the large number of pages that I could find on the internet about this issue has not been too difficult to operate the effect correctly.\par
+\par
+\par
+Menci\'f3n aparte requiere el dise\'f1o y dibujado de las cartas.\par
+Special mention requires the design and drawn cards.\par
+\par
+ Y en especial el de las caras de las figuras del joker, la reina y el rey, a pesar de su aparente simplicidad.\par
+And especially the faces of the figures joker, queen and king, despite its apparent simplicity.\par
+\par
+\par
+C\'f3digo fuente\par
+Source code\par
+\par
+Al ser un programa escrito completamente en JavaScript, todo el c\'f3digo fuente se encuentra embebido dentro de la propia p\'e1gina HTML desde la que se ejecuta el juego, por lo que para acceder al mismo basta con seleccionar la opci\'f3n "ver c\'f3digo fuente de la p\'e1gina" del navegador.\par
+Being a program written entirely in JavaScript, all source code is embedded within the HTML page itself from which the game is running, so to access it simply select the option "view source of the page" browser.\par
+\par
+\par
+Clases\par
+Lessons\par
+\par
+El juego se compone de las siguientes clases:\par
+The game consists of the following classes:\par
+\par
+- Game: Es la clase que representa la aplicaci\'f3n. \par
+- Game: This is the class that represents the application. \par
+\par
+Se limita a instanciar el tablero y cederle el control.\par
+It is limited to instantiate the board and cede control.\par
+\par
+- Board: Es la encargada de crear los objetos del juego de forma din\'e1mica, de recibir y responder a los eventos de rat\'f3n, y contiene la l\'f3gica de control y de fin de partida.\par
+- Board: It is responsible for creating game objects dynamically, to receive and respond to mouse events, and contains the control logic and endgame.\par
+\par
+- Bunch: Esta clase representa cada uno de los montones en los que se pueden depositar o extraer cartas. \par
+- Bunch: This class represents each of the lots in which you can deposit or remove cards. \par
+\par
+Contiene un atributo que indica que tipo de mont\'f3n concreto representa cada instancia de esta clase.\par
+It contains an attribute indicating that particular type of heap represents each instance of this class.\par
+\par
+- Card: Representa a cada una de las cartas de la baraja. \par
+- Card: Represents each card deck. \par
+\par
+Contiene una referencia al objeto HTML que la representa y al mazo en el que se encuentra, as\'ed como su palo, color y n\'famero, y un indicador de si se encuentra boca arriba o boca abajo.\par
+Contains a reference to the HTML object that represents it and the deck where is, and his stick, color and number, and an indicator of whether face up or face down is.\par
+\par
+- Deck: Es la clase que describe la baraja. \par
+- Deck: The class that describes the deck. \par
+\par
+Contiene atributos con el n\'famero de cartas, el n\'famero de palos, las dimensiones de las cartas, y el directorio ra\'edz donde se encuentran las im\'e1genes. \par
+Contains attributes with the number of cards, the number of poles, the dimensions of the cards, and the root directory where the images. \par
+\par
+Contiene un m\'e9todo utilizado al iniciar el juego, y que se encarga de repartir las cartas sobre el tablero evitando que una misma carta se repita m\'e1s de una vez.\par
+It contains a method used to start the game, and that is responsible for dealing the cards on the board preventing repeat the same letter more than once.\par
+\par
+\par
+Creaci\'f3n de Mazos\par
+Creating Mallets\par
+\par
+Mientras que las clases de la baraja y de las cartas no implican gran dificultad, la que representa los mazos tiene el inconveniente de que cada instancia concreta debe conocer el tipo de mazo concreto que representa, ya que su ubicaci\'f3n y reglas son distintas para cada uno de ellos.\par
+While the classes of the deck and the cards do not involve great difficulty, which represents mallets has the disadvantage that each particular instance must know the type of deck concrete that represents, as its location and rules are different for each from them.\par
+\par
+Este el tipo de tareas que pueden resolverse facilmente mediante herencia, una caracter\'edstica que soporta JavaScript mediante una t\'e9cnica de prototipado, pero con la que no he acabado de sentirme c\'f3modo, raz\'f3n por la cual me he decidido a implementar la herencia a trav\'e9s de un atributo type que utilizan los m\'e9todos para determinar c\'f3mo deben comportarse.\par
+This type of tasks that can be solved easily through inheritance, a feature that supports JavaScript using a technique of prototyping, but I have not finished be comfortable, which is why I have decided to implement inheritance through an attribute type using methods to determine how they should behave.\par
+\par
+La clase Board es la encargada de crear todos los mazos del tablero mediante la funci\'f3n createBunchs en la que se llama al m\'e9todo createBunch indicando el tipo de mazo a crear, su coordenada superior izquierda, y el n\'famero de cartas iniciales de las que debe constar el mazo:\par
+The Board class is responsible for creating all the decks of the board by createBunchs function which is called createBunch method indicating the type of deck to create his upper left coordinate, and the number of initial letters which must include the mallet:\par
+\par
+
+\pard\sl276\slmult1\f1   this.createBunchs = function() \{\par
+    self.createBunch("pile",  50, 100, 1);\par
+    self.createBunch("pile", 125, 100, 2);\par
+    self.createBunch("pile", 200, 100, 3);\par
+    self.createBunch("pile", 275, 100, 4);\par
+    self.createBunch("pile", 350, 100, 5);\par
+    self.createBunch("pile", 425, 100, 6);\par
+    self.createBunch("pile", 500, 100, 7);\par
+    self.createBunch("deck",   5,   0, 0, self.createBunch("pair", 80, 0, 2) );\par
+    self.createBunch("end",  275,   0, 0);\par
+    self.createBunch("end",  350,   0, 0);\par
+    self.createBunch("end",  425,   0, 0);\par
+    self.createBunch("end",  500,   0, 0);\par
+  \}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+\par
+El tipo "pile" representa los mazos auxiliares, "deck" la baraja, "pair" el mazo en el que se ponen las cartas sacadas de dos a dos de la baraja, y "end" los mazos finales.\par
+The type "pile" represents the auxiliary decks, "deck" deck, "pair" deck where the two cards drawn two of the deck, and "end" end decks are made.\par
+\par
+El \'fanico mazo que se construye de forma especial es el de la baraja, al que se le pasa un quinto par\'e1metro que hace referencia a otro mazo, el "pair", para que se sepa al hacer doble-click sobre \'e9l donde tienen que ponerse las cartas sacadas.\par
+The only deck that is built specially is the deck, which is passed a fifth parameter that refers to another deck, the "pair" so that you know when you double-click on it where they have to be the drawn cards.\par
+\par
+\par
+Referencias\par
+References\par
+\par
+Una de las decisiones de dise\'f1o que tom\'e9 durante la implementaci\'f3n de juegos anteriores fue la de asignar un gestor de eventos de rat\'f3n a cada uno de los elementos HTML, e incluso la de poner un \'fanico objeto transparente sobre el resto para recoger todos los eventos; algo que ahora s\'e9 que ni siquiera funciona correctamente con Internet Explorer, ya que ignora los clicks sobre las \'e1reas transparentes.\par
+One of the design decisions I made during the implementation of previous games was to assign an event handler mouse to each of the HTML elements, and even put a single transparent object on the rest to collect all events; something that now I know that does not even work properly with Internet Explorer because it ignores clicks on the transparent areas.\par
+\par
+Para este juego me plante\'e9 inicialmente hacer que cada carta recibiera directamente las pulsaciones del rat\'f3n y las reenviara al tablero. \par
+For this game I raised initially make each letter directly receive mouse clicks and forwarded to the board. \par
+\par
+Sin embargo, descubr\'ed que pod\'eda hacerlo todo con un s\'f3lo gestor de eventos centralizado. \par
+However, I found I could do it all with a single centralized event manager.\par
+\par
+La clave estuvo en darme cuenta de que a los elementos HTML de la p\'e1gina se le pueden a\'f1adir atributos en tiempo de ejecuci\'f3n de igual forma que se hace con cualquier otra clase en JavaScript. \par
+The key was to realize that the HTML elements of the page you can add attributes at runtime same way you do with any other class in JavaScript.\par
+\par
+As\'ed, las instancias de la clase Bunch guardan una referencia a un div de la p\'e1gina, y los divs guardan una referencia a la instancia de la clase:\par
+Thus, instances of the class Bunch keep a reference to a div of the page, and divs keep a reference to the instance of the class:\par
+\par
+
+\pard\sl276\slmult1\f1   this.div = div;\par
+  this.div.bunch = this;\par
+
+\pard\sa200\sl276\slmult1\f0\par
+Y lo mismo sucede con las im\'e1genes de las cartas:\par
+And so it is with the images of the cards:\par
+\par
+
+\pard\sl276\slmult1\f1   this.img = img;\par
+  this.img.card = this;\par
+
+\pard\sa200\sl276\slmult1\f0\par
+De esta forma, cuando se produce un evento de rat\'f3n se puede obtener el elemento HTML sobre el que se ha producido, y obtener a su vez de \'e9l la instancia de la clase que lo representa en el juego.\par
+Thus, when a mouse event occurs you can get the HTML element on which there has been, and get him to turn the instance of the class that represents it in the game.\par
+\par
+Para entender esto mejor quiz\'e1s sea conveniente utilizar la nomenclatura alternativa de JavaScript en la que queda patente que todos los atributos de una clase se tratan como un array asociativo, y que pueden a\'f1adirse nuevos atributos en cualquier momento:\par
+To understand this better it may be convenient to use the alternative nomenclature of JavaScript in which it is clear that all attributes of a class are treated as an associative array, and new attributes can be added at any time:\par
+\par
+
+\pard\sl276\slmult1\f1 this["div"] = div;\par
+  this.div["bunch"] = this;\par
+
+\pard\sa200\sl276\slmult1\f0\par
+Drag and Drop\par
+Drag and Drop\par
+\par
+El efecto de drag and drop se basa en el correcto uso de los eventos de rat\'f3n. \par
+The effect of drag and drop is based on the correct use of mouse events.\par
+\par
+Hace unos d\'edas escrib\'ed una explicaci\'f3n detallada con un c\'f3digo muy simplificado y f\'e1cil de seguir, y que puede puede encontrarse en {{\field{\*\fldinst{HYPERLINK http://www.inmensia.com/blog/20060207/1.html }}{\fldrslt{http://www.inmensia.com/blog/20060207/1.html\ul0\cf0}}}}\f0\fs22 .\par
+A few days ago I wrote a detailed explanation with a very simplified and easy to follow code, and can be found in {{\field{\*\fldinst{HYPERLINK http://www.inmensia.com/blog/20060207/1.html }}{\fldrslt{http://www.inmensia.com/blog/20060207/1.html\ul0\cf0}}}}\f0\fs22 .\par
+\par
+Para empezar, hay que poner gestores para cada uno de los eventos de rat\'f3n:\par
+To begin, we must put managers for each mouse events:\par
+\par
+
+\pard\sl276\slmult1\f1   this.registerMouse = function() \{\par
+    document.ondblclick  = self.onDblClick;\par
+    document.onmousedown = self.onMouseDown;\par
+    document.onmousemove = self.onMouseMove;\par
+    document.onmouseup   = self.onMouseUp;\par
+  \}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+A continuaci\'f3n hay que detectar si el objeto sobre el que se pulsa es una carta, algo que se hace comprobando que su clase CSS es "card". \par
+Next it is to detect whether the object on which it is pressed is a letter, which is done by checking your CSS class is "card".\par
+\par
+El resto de c\'f3digo del evento (que deber\'eda haber sacado a otro m\'e9todo para simplificarlo), se encarga de comprobar si se admite hacer drag de la carta en funci\'f3n del mazo en el que se encuentra, y anotar las coordenadas actuales en las que se encuentran cada uno de los objetos siendo arrastrados:\par
+The other event code (which should have taken another method for simplicity), is responsible for checking if supported to drag the letter depending on the deck where it is, and note the coordinates in which are each of the objects being dragged:\par
+\par
+
+\pard\sl276\slmult1\f1   this.onMouseDown = function(e) \{\par
+    var object = getMouseObject(e);\par
+    if (object.className == "card") \{\par
+      var card = object.card;\par
+      \par
+      self.drags = card.bunch.getDrags(card);\par
+      if (self.drags.length > 0) \{\par
+        self.dragX = pxToNumber(self.drags[0].img.style.left) - getMouseX(e);\par
+        self.dragY = pxToNumber(self.drags[0].img.style.top)  - getMouseY(e);\par
+        \par
+        for (var i in self.drags) \{\par
+          self.drags[i].originalLeft   = self.drags[i].img.style.left;\par
+          self.drags[i].originalTop    = self.drags[i].img.style.top;\par
+          self.drags[i].originalZIndex = self.drags[i].img.style.zIndex;\par
+          self.drags[i].img.style.zIndex = 1000 + i;\par
+        \}\par
+        return(false);\par
+      \}\par
+    \}\par
+  \}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+En el m\'e9todo onMouseMove se actualiza la posici\'f3n de cada uno de las cartas que se est\'e1n arrastrando ajustando su posici\'f3n en funci\'f3n de la del rat\'f3n:\par
+In the method onMouseover the position of each of the letters are creeping adjusting its position according to the mouse is updated:\par
+\par
+
+\pard\sl276\slmult1\f1   this.onMouseMove = function(e) \{\par
+    var left = self.dragX + getMouseX(e);\par
+    var top  = self.dragY + getMouseY(e);\par
+    \par
+    for (var i in self.drags) \{\par
+      self.drags[i].img.style.left = String(left) + "px";\par
+      self.drags[i].img.style.top  = String(top + (10 * i) ) + "px";\par
+    \}\par
+    \par
+    return(self.drags.length == 0);\par
+  \}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+El \'faltimo evento a considerar es onMouseUp donde se libera el rat\'f3n y las cartas que est\'e1n siendo arrastradas. \par
+The last event to consider is onMouseUp where the mouse and letters being dragged is released.\par
+\par
+Si se suelta sobre un mazo se intenta colocar las cartas en el mismo, y si no se devuelven a su posici\'f3n original:\par
+If loose on a deck you try to place the cards in it, and if not returned to its original position:\par
+\par
+
+\pard\sl276\slmult1\f1   this.onMouseUp = function(e) \{\par
+    if (self.drags.length) \{\par
+    \par
+      var left = self.dragX + getMouseX(e);\par
+      var top  = self.dragY + getMouseY(e);\par
+      \par
+      var bunch = self.getBunchDrop(left, top);\par
+      if (bunch)\par
+        for (var i in self.drags)\par
+          bunch.adquireCard(self.drags[i]);\par
+      else \par
+        for (var i in self.drags)\{\par
+          self.drags[i].img.style.left   = self.drags[i].originalLeft;\par
+          self.drags[i].img.style.top    = self.drags[i].originalTop;\par
+          self.drags[i].img.style.zIndex = self.drags[i].originalZIndex;\par
+        \}\par
+        \par
+      self.drags.length = 0;\par
+      self.checkEnd();\par
+    \}\par
+  \}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+Detecci\'f3n de Mazo\par
+Detection Mazo\par
+\par
+Cuando se suelta una carta que est\'e1 siendo arrastrada con el rat\'f3n, se comprueba si dicha carta se encuentra sobre un mazo, y si este la admite.\par
+When a letter is being dragged with the mouse is released, it is checked whether the letter is on a deck, and if it supports it.\par
+\par
+El m\'e9todo getBunchDrop comprueba primero si se est\'e1 sobre uno de los rect\'e1ngulos de borde discontinuo que representan los mazos. \par
+The getBunchDrop method checks first if you are on one of the rectangles representing discontinuous edge decks.\par
+\par
+Y si no se est\'e1 se comprueba si se encuentra sobre alguna de las cartas que componen el mazo, para permitir que la carta siendo arrastrada pueda soltarse en cualquier punto sobre \'e9l, sin necesidad de arrastrarla hasta un sitio concreto.\par
+And if it is not checked if found on any of the letters that make up the deck, to allow the letter being dragged can break loose at any point on it, without dragging it to a specific site.\par
+\par
+Si se detecta que se est\'e1 soltando la carta sobre el mazo entonces se pregunta al mazo si admite la carta siendo soltada.\par
+If it is detected that is being released the letter on deck to deck then he asks if the card supports being released.\par
+\par
+
+\pard\sl276\slmult1\f1   this.getBunchDrop = function(left, top) \{\par
+    for (var i in self.bunchs) \{\par
+      if ( self.collition(left, top, self.bunchs[i].div) )\par
+        if ( self.bunchs[i].acceptCards(self.drags) )\par
+          return(self.bunchs[i]);\par
+      for (var j in self.bunchs[i].cards)\par
+        if ( self.collition(left, top, self.bunchs[i].cards[j].img) )\par
+          if ( self.bunchs[i].acceptCards(self.drags) )\par
+            return(self.bunchs[i]);\par
+    \}\par
+  \}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+El m\'e9todo collition se utiliza para la detecci\'f3n de colisiones, y es una simple rutina de comprobaci\'f3n que compara los l\'edmites de un rect\'e1ngulo (el de la carta soltada) sobre otro rect\'e1ngulo (el del bunch o el de otra carta).\par
+The Collition method is used for collision detection, and is a simple checking routine that compares the limits of a rectangle (the letter released) over another rectangle (the bunch or another letter).\par
+\par
+
+\pard\sl276\slmult1\f1   this.collition = function(left, top, element) \{\par
+    return( (left >= pxToNumber(element.style.left) ) &&\par
+            (left <  pxToNumber(element.style.left) + self.deck.cardWidth) &&\par
+            (top  >= pxToNumber(element.style.top) ) &&\par
+            (top  <  pxToNumber(element.style.top) + self.deck.cardHeight) );\par
+  \}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+Aceptaci\'f3n de cartas\par
+Acceptance cards\par
+\par
+El algoritmo de aceptaci\'f3n de cartas por parte de un mazo depende del tipo de mazo concreto en el que se intentan depositar estas.\par
+The algorithm acceptance letters from a deck depends on the type of concrete deck where you try to place them.\par
+\par
+Para los mazos auxiliares las comprobaciones son:\par
+For auxiliary decks checks are:\par
+\par
+- Si el mazo est\'e1 vac\'edo entonces la carta debe ser un rey (n\'famero 13)\par
+- If the deck is empty then the letter should be a king (number 13)\par
+\par
+- Si el mazo tiene alguna carta entonces la carta que est\'e9 por encima del resto debe estar boca arriba, tener un n\'famero inmediatamente inferior a la que se quiere depositar y un color distinto.\par
+- If the deck has a letter then the letter is above the rest must be face up, have a number immediately below that you want to place and a different color.\par
+\par
+
+\pard\sl276\slmult1\f1   this.acceptCardPile = function(card) \{\par
+    if (self.cards.length == 0)\par
+      return(card.number == 13);\par
+    if (self.onTop().reverse == false)\par
+      if (self.onTop().number == card.number + 1)\par
+        return(self.onTop().color != card.color);\par
+      \par
+    return(false);\par
+  \}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+Para los mazos finales las comprobaciones son:\par
+For end decks checks are:\par
+\par
+- Si el mazo est\'e1 vac\'edo entonces la carta debe ser un as (n\'famero 1)\par
+- If the deck is empty then the letter should be an ace (number 1)\par
+\par
+- Si el mazo tiene alguna carta entonces la carta que est\'e9 por encima del resto debe tener un n\'famero inmediatamente inferior a la que se quiere depositar y el mismo palo.\par
+- If the deck has a letter then the letter is above the rest must have a number immediately below that you want to deposit and the same suit.\par
+\par
+
+\pard\sl276\slmult1\f1   this.acceptCardEnd = function(card) \{\par
+    if (self.cards.length == 0)\par
+      return(card.number == 1);\par
+    if (self.cards.length == card.number - 1)\par
+      return(self.cards[0].suit == card.suit);\par
+    return(false);\par
+  \}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+El palo, color y n\'famero de una carta se determina cuando se crea la misma en funci\'f3n de su n\'famero identificador, que va de 0 a 52, tantos n\'fameros como cartas tiene la baraja.\par
+The stick, color and number of a letter is determined when it is created based on their ID number, ranging from 0 to 52, many numbers as cards have the deck.\par
+\par
+El palo de la carta se determina diviendo dicho identificador por el n\'famero de cartas que tiene un palo, el n\'famero de la carta sacando el m\'f3dulo, y su color diviendo y aplicando m\'f3dulo 2 al resultado, ya que dos palos son negros y los otros dos rojos:\par
+The suit of the card is determined diviendo said identifier by the number of cards you have a stick, the number of the card by removing the module, and its color diviendo and applying modulo 2 to the result, as two sticks are black and the other two red:\par
+\par
+
+\pard\sl276\slmult1\f1   this.suit    = Math.floor(id / self.bunch.board.deck.cardSuit);\par
+  this.number  = Math.floor(id % self.bunch.board.deck.cardSuit) + 1;\par
+  this.color   = Math.floor(id / self.bunch.board.deck.cardSuit) % 2;\par
+
+\pard\sa200\sl276\slmult1\f0\par
+Funciones auxiliares\par
+auxiliary functions\par
+\par
+Para que conseguir que el programa funcione en los dos navegadores con los que estoy probando los juegos, Firefox e Internet Explorer, he creado una serie de funciones auxiliares que se encargan de extraer de la forma correcta los argumentos de los eventos del rat\'f3n en funci\'f3n del sistema de eventos de cada navegador en particular:\par
+In order to get the program to work in both browsers with which I am testing the games, Firefox and Internet Explorer, have created a number of auxiliary functions that are responsible for removing the right way arguments mouse events depending on the event system each particular browser:\par
+\par
+
+\pard\sl276\slmult1\f1 function getMouseObject(e) \{\par
+  return(e? e.target: window.event.srcElement);\par
+\}\par
+function getMouseX(e) \{\par
+  return(e? e.clientX: window.event.clientX);\par
+\}\par
+  \par
+function getMouseY(e) \{\par
+  return(e? e.clientY: window.event.clientY);\par
+\}\par
+\f0\par
+\par
+
+\pard\sa200\sl276\slmult1 Posibles mejoras\par
+possible improvements\par
+\par
+El juego admite muchas mejoras, cito a continuaci\'f3n algunas de las m\'e1s evidentes:\par
+The game supports many improvements, I quote below some of the most obvious:\par
+\par
+- A\'f1adir un peque\'f1o reloj contador de tiempo. De esta forma el jugador no s\'f3lo competir\'eda contra el tablero, sino tambi\'e9n contra el tiempo.\par
+- Add a small counter clock time. Thus the player not only compete against the board, but also against time.\par
+\par
+- Si se a\'f1ade un contador de tiempo entonces tambi\'e9n ser\'eda interesante salvar el mejor tiempo conseguido, dando as\'ed otro motivo para continuar jugando.\par
+- If a timer is added then it would be interesting to save the best time achieved, giving another reason to continue playing.\par
+\par
+- A\'f1adir distintos dise\'f1os de cartas, con distintos reversos, permitiendo al jugador elegir la baraja con la que quiere jugar.\par
+- Add different designs of cards with different backs, allowing the player to choose the cards you want to play.\par
+\par
+- Permitir variar algunas de las reglas del juego, como el n\'famero de cartas que se extraen de la baraja de una sola vez, o el n\'famero de montones auxiliares disponibles.\par
+- Allow change some of the rules of the game, as the number of cards drawn from the deck at once, or the number of auxiliary piles available.\par
+\par
+- Permitir deshacer las jugadas realizadas.\par
+- Allow undo the moves you made.\par
+\par
+- Avisar al jugador cuando el solitario no puede resolverse.\par
+- Warn when the lone player can not be resolved.\par
+\par
+\'bfNo encontr\'f3 lo que buscaba?\par
+You did not find what you wanted?\par
+\par
+Utilice el buscador para encontrar m\'e1s p\'e1ginas en esta web o en toda Internet.\par
+Use the search engine to find more pages on this site or across the Internet.\par
+\par
+\par
+Solitario: Drag and Drop en JavaScript\par
+Solitarie: Drag and Drop in JavaScript\par
+\par
+Temas: JavaScript Juegos Programacion VideoJuegos\par
+Topics: JavaScript Programming Games VideoJuegos\par
+\par
+Juan Mellado, 7 Febrero, 2006 - 20:21\par
+Juan Mellado, February 7, 2006 - 20:21\par
+\par
+He sacado un poco de tiempo para seguir con el juego del Solitario que estoy haciendo en JavaScript. \par
+I've taken a little time to get on with the game Solitaire I'm doing in JavaScript.\par
+\par
+Y he aprovechado para a\'f1adirle el efecto de drag and drop, para mover las cartas de un mont\'f3n a otro, procurando ser fiel al funcionamiento del juego original.\par
+And I used to add the effect of drag and drop to move cards from one pile to another, trying to be faithful to the operation of the original game.\par
+\par
+Todo el control se hace por c\'f3digo, procesando los eventos de rat\'f3n adecuados para capturar el momento en que se pincha sobre una carta y se arrastra hasta liberarla. \par
+All control is done by code, processing the appropriate mouse events to capture the moment you click on a card and drag it to release it.\par
+\par
+Aunque a\'fan me queda por hacer todo el proceso de mover una pila de cartas a un mismo tiempo en vez de una sola carta.\par
+Although I still have to do the whole process of moving a stack of cards at a time instead of a single card.\par
+\par
+Lo primero que he hecho ha sido definir tres variables en las que recoger el objeto sobre el que se ha pinchado y las coordernadas X e Y relativas al objeto sobre las que se ha pinchado:\par
+The first thing I did was define three variables that pick up the object on which it has played and coordernadas X and Y on the object on which it has played:\par
+\par
+
+\pard\sl276\slmult1\f1 var drag = null;\par
+var dragX = 0, dragY = 0;\par
+Y a continuaci\'f3n he capturado los tres eventos de rat\'f3n oportunos:\par
+function registerMouse() \{\par
+  document.onmousedown = onMouseDown;\par
+  document.onmousemove = onMouseMove;\par
+  document.onmouseup   = onMouseUp;\par
+\}\par
+\par
+\par
+
+\pard\sa200\sl276\slmult1\f0 En el primer evento se comprueba al pinchar sobre un objeto HTML si es una carta mirando si su clase CSS es "card", y si lo es se inicializan las tres variables definidas anteriormente:\par
+In the first event is checked when clicking on an HTML object if a letter looking if your CSS class is "card" and if it is the three variables are initialized defined above:\par
+\par
+
+\pard\sl276\slmult1\f1 function onMouseDown(e) \{\par
+  var object = getMouseObject(e);\par
+  if (object.className == "card") \{\par
+    drag  = object;\par
+    dragX = pxToNumber(drag.style.left) - getMouseX(e);\par
+    dragY = pxToNumber(drag.style.top)  - getMouseY(e);\par
+    return(false);\par
+  \}\par
+\}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+En el segundo evento se mueve el objeto siendo arrastrado actualizando sus coordenadas. \par
+In the second event moves the object being dragged updating their coordinates.\par
+\par
+Curiosamente, lo m\'e1s importante aqu\'ed es el "return(false)", si no se pone entonces el c\'f3digo no funciona correctamente. Me ha dado bastantes quebraderos de cabeza hasta que me he dado cuenta.\par
+Interestingly, the most important thing here is the "return (false)" if not then puts the code does not work properly. It has given me quite a headache until I've noticed.\par
+\par
+
+\pard\sl276\slmult1\f1 function onMouseMove(e) \{\par
+  if (drag) \{\par
+    drag.style.left = String(dragX + getMouseX(e) ) + "px";\par
+    drag.style.top  = String(dragY + getMouseY(e) ) + "px";\par
+    return(false);\par
+  \}\par
+\}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+La \'faltima funci\'f3n se limita a liberar la referencia al objeto siendo arrastrado:\par
+The last function is limited to release the reference to the object being dragged:\par
+\par
+
+\pard\sl276\slmult1\f1 function onMouseUp(e) \{\par
+  drag = null;\par
+\}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+Para evitar la dependencias, y hacer que el c\'f3digo funcionara bien en Firefox e Internet Explorer, he creado una serie de funciones auxiliares que extraen los valores correctos de los eventos seg\'fan el navegador:\par
+To avoid dependencies, and make the code work well in Firefox and Internet Explorer, I created a number of auxiliary functions that extract the correct values of events depending on the browser:\par
+\par
+
+\pard\sl276\slmult1\f1 function getMouseObject(e) \{\par
+  return(e? e.target: window.event.srcElement);\par
+\}\par
+function getMouseX(e) \{\par
+  return(e? e.clientX: window.event.clientX);\par
+\}\par
+function getMouseY(e) \{\par
+  return(e? e.clientY: window.event.clientY);\par
+\}\par
+function pxToNumber(s) \{\par
+  return( Number( s.substring(0, s.length - 2) ) );\par
+\}\par
+
+\pard\sa200\sl276\slmult1\f0\par
+\'bfNo encontr\'f3 lo que buscaba?\par
+You did not find what you wanted?\par
+\par
+Utilice el buscador para encontrar m\'e1s p\'e1ginas en esta web o en toda Internet.\par
+Use the search engine to find more pages on this site or across the Internet.\par
+\par
+ B\'fasqueda de Google\par
+Google Search\par
+ \tab\par
+ Web\tab  {{\field{\*\fldinst{HYPERLINK www.inmensia.com }}{\fldrslt{www.inmensia.com\ul0\cf0}}}}\f0\fs22\par
+Inicie sesi\'f3n para enviar comentarios\par
+Login to post comments\par
+\par
+Sobre el script\line On the script\par
+\par
+frandy (no verificado), 9 Agosto, 2007 - 23:43\par
+frandy (not verified), August 9, 2007 - 23:43\par
+\par
+Me parece interesante, pero no veo un enlace a una pagina de prueba, un demo del funcionamiento. \par
+I find it interesting, but I see a link to a page test, a performance demo. \par
+\par
+O bueno, al menos un ejemplo de como ponerlo a funcionar.\par
+Or well, at least one example of how to put it to work.\par
+\par
+Saludos.\par
+Greetings.\par
+\par
+\par
+Good\par
+Juan Carlos Guill\'e9n Zurita (no verificado), 21 Agosto, 2007 - 17:06\par
+Excellent!!!\par
+\par
+\par
+Para que funcione falta algo\par
+To function missing something\par
+\par
+bluejc (no verificado), 25 Enero, 2008 - 03:28\par
+bluejc (not verified), 25 January 2008 - 3:28\par
+\par
+A mi no me funcion\'f3 hasta que le inserte un drag.style.position="absolute" en el onMouseMove o tambi\'e9n poniendolo en el style del elemento a mover style="position:absolute"\par
+To me I did not work until you insert a drag.style.position = "absolute" in the onMouseMove or even putting it in the style of the element to move style = "position: absolute"\par
+\par
+Saludos\par
+regards\par
+\par
+bluejc\par
+bluejc\par
+\par
+}
+ 
